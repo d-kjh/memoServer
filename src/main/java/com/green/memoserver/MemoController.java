@@ -1,10 +1,11 @@
 package com.green.memoserver;
 
-import com.green.memoserver.model.MemoPostReq;
-import com.green.memoserver.model.MemoPutReq;
+import com.green.memoserver.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -13,38 +14,49 @@ import org.springframework.web.bind.annotation.*;
 public class MemoController {
     private final MemoService memoService;
 
-    // C (post) /api/memo
+    // Create (post) /api/memo
     @PostMapping
-    public String PostMemo(@RequestBody MemoPostReq req) {// @RequestBody를 쓰지 않으면 form 데이터로 인식
+    public String postMemo(@RequestBody MemoPostReq req) {// @RequestBody를 쓰지 않으면 form 데이터로 인식
         log.info("req={}", req);
-        return "성공";
+        int result = memoService.save(req);
+        return result == 1 ? "success" : "fail";
     }
 
-    // R (get)
+    // Read (get)
     @GetMapping
-    public String getMemo(@RequestParam(name = "search_text", required = false) String searchText,
-                           @RequestParam(required = false) Integer page) {
-        log.info("search_text={}, page={}", searchText, page);
-        return "메모리스트";
+    public List<MemoGetRes> getMemo(@ModelAttribute MemoGetReq req) {
+        log.info("req={}", req);
+        return memoService.findAll(req);
     }
+//    public String getMemo(@RequestParam(name = "search_text", required = false) String searchText
+//                        , @RequestParam(required = false) Integer page) {
+        //log.info("search={}, page={}", searchText, page);
+//        MemoGetReq req = MemoGetReq.builder()
+//                                   .page(page)
+//                                   .searchText(searchText)
+//                                   .build();
+        //memoService.getMomoList(searchText, page);
+        //memoService.getMomoList(req);
 
-    @GetMapping("{memoId}")
-    public String getMemo(@PathVariable(name = "memoId") int memoId){
-        log.info("memoId={}", memoId);
-        return "메모하나";
+    @GetMapping("{id}")
+    public MemoGetOneRes getOneMemo(@PathVariable(name = "id") int id){
+        log.info("id={}", id);
+        return memoService.findById(id);
     }
 
     //Update
     @PutMapping
-    public String PutMemo(@RequestBody MemoPutReq req){
+    public String putMemo(@RequestBody MemoPutReq req){
         log.info("req={}", req);
         return "수정 완료";
     }
 
     //Delete
     @DeleteMapping
-    public String DelMemo(@RequestParam(name = "memo_id") String memoId){
-        log.info("memo_id={}", memoId);
-        return "삭제 완료";
+    public int delMemo(@RequestParam(name = "id") int id){
+        log.info("id={}", id);
+        //int result = memoService.deleteById(id);
+        // result == 1 ? "삭제 성공" : "삭제 실패";
+        return memoService.deleteById(id);
     }
 }
